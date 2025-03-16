@@ -27,21 +27,14 @@ temperature.forEach(d => {
   const date = new Date(d.date);
   d.year = date.getFullYear();
   d.month = monthNames[date.getMonth() + 1];
+  d.day = date.getDate();
 });
 
 const filteredData = temperature.filter(d => d.year !== 1996);
 ```
 
 ```js
-const dataByYearMonth = d3.rollup(
-  filteredData,
-  v => ({
-    max_temperature: d3.max(v, d => d.max_temperature),
-    min_temperature: d3.min(v, d => d.min_temperature)
-  }),
-  d => d.year,
-  d => d.month
-);
+const dataByYearMonth = d3.group(filteredData, d => d.year, d => d.month);
 ```
 
 ```js
@@ -51,8 +44,8 @@ dataByYearMonth.forEach((months, year) => {
         gridData.push({ 
             year, 
             month, 
-            max_temperature: temps.max_temperature,
-            min_temperature: temps.min_temperature // Now added
+            max_temperatures: temps.map(d => ({ day: d.day, temp: d.max_temperature })),
+            min_temperatures: temps.map(d => ({ day: d.day, temp: d.min_temperature }))
         });
     });
 });
@@ -77,31 +70,30 @@ let showMaxTemp = true;
 ```
 
 ```js
-function part1(data, showMaxTemp, {width} = {}) {
+function part1(data, showMaxTemp, { width } = {}) {
   return Plot.plot({
-    // title: showMaxTemp ? "Year/Month Max Temperature Grid" : "Year/Month Min Temperature Grid",
     width,
     height: 700,
     x: {
       label: "Year",
-      domain: d3.sort([...new Set(data.map(d => d.year))]), // Ensure all years are displayed
-      nice: false, // Don't auto-nice to avoid skipping years
+      domain: d3.sort([...new Set(data.map(d => d.year))]),
+      nice: false,
       band: true
     },
     y: {
       label: "Month",
-      domain: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], // Month range 0-11 for January to December
+      domain: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       ticks: 12,
-      ticksize:0,
+      ticksize: 0,
       band: true
     },
     marks: [
       Plot.rect(gridData, {
         x: "year", y: "month",
-        fill: (d) => colorScale(showMaxTemp ? d.max_temperature : d.min_temperature, showMaxTemp), // Toggle between max & min temp
-        title: (d) => `${d.month} ${d.year}\nMax Temp: ${d.max_temperature}°C\nMin Temp: ${d.min_temperature}°C`
+        fill: d => colorScale(showMaxTemp ? d3.max(d.max_temperatures, t => t.temp): d3.min(d.min_temperatures, t => t.temp), showMaxTemp), // Toggle between min and max temperature
+        title: d => `${d.month} ${d.year}\nMax Temp: ${d3.max(d.max_temperatures, t => t.temp)}°C\nMin Temp: ${d3.min(d.min_temperatures, t => t.temp)}°C`
       }),
-      Plot.ruleY([0])  // A rule to create a baseline for Y axis
+      Plot.ruleY([0])
     ]
   });
 }
@@ -111,10 +103,10 @@ function part1(data, showMaxTemp, {width} = {}) {
 let showMaxTemp = true;
 
 document.getElementById("toggle-button").addEventListener("click", function() {
-  showMaxTemp = !showMaxTemp; // Toggle flag
-  document.getElementById("plot-container").innerHTML = ""; // Clear previous plot
-  document.getElementById("plot-container").appendChild(part1(filteredData, showMaxTemp, {width})); // Re-render
-  this.textContent = showMaxTemp ? "Show Min Temperature" : "Show Max Temperature"; // Update button text
+  showMaxTemp = !showMaxTemp;
+  document.getElementById("plot-container").innerHTML = "";
+  document.getElementById("plot-container").appendChild(part1(gridData, showMaxTemp, { width }));
+  this.textContent = showMaxTemp ? "Show Min Temperature" : "Show Max Temperature";
 });
 ```
 
@@ -127,7 +119,7 @@ document.getElementById("toggle-button").addEventListener("click", function() {
       Show Min Temperature
     </button>
     <div id="plot-container">
-      ${resize((width) => part1(filteredData, true, {width}))}
+      ${resize((width) => part1(gridData, true, {width}))}
     </div>
   </div>
 </div>
