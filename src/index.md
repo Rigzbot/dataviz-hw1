@@ -1,6 +1,6 @@
 ---
 theme: dashboard
-title: Homework 1
+title: Level 1
 toc: false
 ---
 
@@ -56,11 +56,11 @@ function colorScale(temp, showMaxTemp) {
   if (showMaxTemp) {
     // Red-orange color scale for max temperature
     return d3.scaleSequential(d3.interpolateOrRd)
-      .domain([0, 40])(temp); // Adjust the domain according to your temperature range
+      .domain([0, 40])(temp);
   } else {
     // Blue color scale for min temperature
     return d3.scaleSequential(d3.interpolateBlues)
-      .domain([0, 40])(temp); // Adjust the domain according to your min temperature range
+      .domain([0, 40])(temp); 
   }
 }
 ```
@@ -97,15 +97,16 @@ function part1(data, showMaxTemp, { width } = {}) {
     ]
   });
 }
+
 ```
 
 ```js
 let showMaxTemp = true;
 
-document.getElementById("toggle-button").addEventListener("click", function() {
+document.getElementById("toggle-button-1").addEventListener("click", function() {
   showMaxTemp = !showMaxTemp;
-  document.getElementById("plot-container").innerHTML = "";
-  document.getElementById("plot-container").appendChild(part1(gridData, showMaxTemp, { width }));
+  document.getElementById("plot-container-1").innerHTML = "";
+  document.getElementById("plot-container-1").appendChild(part1(gridData, showMaxTemp, { width }));
   this.textContent = showMaxTemp ? "Show Min Temperature" : "Show Max Temperature";
 });
 ```
@@ -115,17 +116,17 @@ document.getElementById("toggle-button").addEventListener("click", function() {
     <div class="card-header">
       Level 1
     </div>
-    <button id="toggle-button">
+    <button class="button" id="toggle-button-1">
       Show Min Temperature
     </button>
-    <div id="plot-container">
+    <div id="plot-container-1">
       ${resize((width) => part1(gridData, true, {width}))}
     </div>
   </div>
 </div>
 
 <style>
-#toggle-button {
+.button {
   padding: 10px 20px;
   background-color:rgb(39, 82, 85); /* Green background */
   color: white; /* White text */
@@ -138,7 +139,7 @@ document.getElementById("toggle-button").addEventListener("click", function() {
   display: block; /* Make the button a block element so it takes up full width */
 }
 
-#toggle-button:hover {
+.button:hover {
   background-color:rgb(7, 66, 63); /* Darker green when hovered */
 }
 
